@@ -195,6 +195,4 @@ CALL transfer_funds(1, 2, 50);
 
 ## Author
 
-**Sourabh**
-GitHub: [@sourabhvamdevan](https://github.com/sourabhvamdevan)
-Portfolio: [sourabhvamdevan4.vercel.app](https://sourabhvamdevan4.vercel.app)
+Veera 
