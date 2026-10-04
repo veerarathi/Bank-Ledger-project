@@ -1,0 +1,38 @@
+digraph ARCH {
+  graph [rankdir=TB, nodesep=0.5, ranksep=0.55, pad=0.3, fontname="Helvetica", bgcolor="white", dpi=170, compound=true];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, fillcolor="white", margin="0.18,0.10"];
+  edge  [fontname="Helvetica", fontsize=10, color="#444444"];
+
+  subgraph cluster_user { label="User"; style="rounded,filled"; fillcolor="#f5f5f5"; fontsize=12;
+    OP [label="Bank operator\n(cmd / PowerShell / bash / IDE console)", fillcolor="#ffffff"]; }
+
+  subgraph cluster_app { label="Presentation layer  -  app.py (Python 3)"; style="rounded,filled"; fillcolor="#e3f2fd"; fontsize=12;
+    MENU [label="Menu loop\nand input validation"];
+    TXN  [label="Transaction wrapper\ncommit / rollback / retry"];
+    DRV  [label="psycopg2 driver"]; }
+
+  subgraph cluster_db { label="PostgreSQL server  -  business logic lives here"; style="rounded,filled"; fillcolor="#e8f5e9"; fontsize=12;
+    subgraph cluster_logic { label="Logic layer (PL/pgSQL)"; style="rounded,filled"; fillcolor="#c8e6c9";
+      PROC [label="Stored procedures\ndeposit, withdraw,\ntransfer_funds, ..."];
+      FUNC [label="Functions\nfn_get_balance,\nfn_mini_statement, ..."];
+      TRIG [label="Triggers\naudit, guards,\nlimits"];
+      VIEW [label="Views\nreports, masked data"]; }
+    subgraph cluster_data { label="Data layer"; style="rounded,filled"; fillcolor="#fff9c4";
+      TBL [label="Tables with PK / FK /\nCHECK constraints\nand indexes"]; }
+    ENG [label="Transaction manager: MVCC, row locks,\nisolation levels, deadlock detection", fillcolor="#ffe0b2"]; }
+
+  subgraph cluster_store { label="Storage"; style="rounded,filled"; fillcolor="#f3e5f5"; fontsize=12;
+    WAL [label="Write-ahead log (WAL)\ncrash recovery"];
+    DAT [label="Data files"];
+    BAK [label="pg_dump backups\n(backups/ folder)"]; }
+
+  OP -> MENU [label="keyboard"];
+  MENU -> TXN; TXN -> DRV; DRV -> PROC [label="CALL ..."];
+  DRV -> FUNC [label="SELECT ..."];
+  DRV -> VIEW [label="SELECT ..."];
+  PROC -> TBL; FUNC -> TBL; VIEW -> TBL;
+  TBL -> TRIG [dir=both, label="fire on\nINSERT/UPDATE/DELETE"];
+  TBL -> ENG [style=dashed];
+  ENG -> WAL; ENG -> DAT;
+  DAT -> BAK [style=dashed, label="pg_dump"];
+}

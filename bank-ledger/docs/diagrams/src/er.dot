@@ -1,0 +1,88 @@
+graph ER {
+  graph [rankdir=LR, nodesep=0.45, ranksep=1.0, pad=0.3, bgcolor="white", fontname="Helvetica", dpi=170];
+  node  [fontname="Helvetica", fontsize=11];
+  edge  [fontname="Helvetica-Bold", fontsize=13, fontcolor="#b00020", color="#444444", penwidth=1.3];
+
+  CUSTOMER [shape=box, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>CUSTOMER</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>customer_id</U></TD></TR>
+    <TR><TD ALIGN="LEFT">full_name</TD></TR>
+    <TR><TD ALIGN="LEFT">email (unique)</TD></TR>
+    <TR><TD ALIGN="LEFT">phone</TD></TR>
+    <TR><TD ALIGN="LEFT">created_at</TD></TR></TABLE>>];
+
+  BRANCH [shape=box, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>BRANCH</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>branch_id</U></TD></TR>
+    <TR><TD ALIGN="LEFT">branch_name (unique)</TD></TR>
+    <TR><TD ALIGN="LEFT">city</TD></TR></TABLE>>];
+
+  ACCOUNT [shape=box, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>ACCOUNT</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>account_id</U></TD></TR>
+    <TR><TD ALIGN="LEFT">account_type</TD></TR>
+    <TR><TD ALIGN="LEFT">balance</TD></TR>
+    <TR><TD ALIGN="LEFT">status</TD></TR>
+    <TR><TD ALIGN="LEFT">opened_on</TD></TR></TABLE>>];
+
+  NOMINEE [shape=box, peripheries=2, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>NOMINEE</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>nominee_no</U> (partial key)</TD></TR>
+    <TR><TD ALIGN="LEFT">nominee_name</TD></TR>
+    <TR><TD ALIGN="LEFT">relation</TD></TR>
+    <TR><TD ALIGN="LEFT">share_percent</TD></TR></TABLE>>];
+
+  TRANSACTION [shape=box, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>TRANSACTION</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>txn_id</U></TD></TR>
+    <TR><TD ALIGN="LEFT">txn_type</TD></TR>
+    <TR><TD ALIGN="LEFT">amount</TD></TR>
+    <TR><TD ALIGN="LEFT">txn_time</TD></TR>
+    <TR><TD ALIGN="LEFT">remarks</TD></TR></TABLE>>];
+
+  AUDIT_LOG [shape=box, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>AUDIT_LOG</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>audit_id</U></TD></TR>
+    <TR><TD ALIGN="LEFT">action</TD></TR>
+    <TR><TD ALIGN="LEFT">old / new balance</TD></TR>
+    <TR><TD ALIGN="LEFT">old / new status</TD></TR>
+    <TR><TD ALIGN="LEFT">changed_by, changed_at</TD></TR></TABLE>>];
+
+  TRANSFER_QUEUE [shape=box, style=filled, fillcolor="#e3f2fd", label=<
+    <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2">
+    <TR><TD><B>TRANSFER_QUEUE</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT"><U>queue_id</U></TD></TR>
+    <TR><TD ALIGN="LEFT">amount</TD></TR>
+    <TR><TD ALIGN="LEFT">status, error_msg</TD></TR>
+    <TR><TD ALIGN="LEFT">queued_at, processed_at</TD></TR></TABLE>>];
+
+  node [shape=diamond, style=filled, fillcolor="#fff4cc", fontsize=10, width=1.3, height=0.8];
+  HOLDS       [label="holds"];
+  MAINTAINED  [label="maintained\nat"];
+  HAS_NOM     [label="has\nnominee", peripheries=2];
+  SENDS       [label="sends\n(from)"];
+  RECEIVES    [label="receives\n(to)"];
+  LOGGED      [label="logged\nin"];
+  QUEUED      [label="queued\nfor"];
+
+  CUSTOMER -- HOLDS      [taillabel="1"];
+  HOLDS    -- ACCOUNT    [headlabel="N"];
+  BRANCH   -- MAINTAINED [taillabel="1"];
+  MAINTAINED -- ACCOUNT  [headlabel="N"];
+  ACCOUNT  -- HAS_NOM    [taillabel="1", penwidth=3];
+  HAS_NOM  -- NOMINEE    [headlabel="N", penwidth=3];
+  ACCOUNT  -- SENDS      [taillabel="0..1"];
+  SENDS    -- TRANSACTION [headlabel="N"];
+  ACCOUNT  -- RECEIVES   [taillabel="0..1"];
+  RECEIVES -- TRANSACTION [headlabel="N"];
+  ACCOUNT  -- LOGGED     [taillabel="1"];
+  LOGGED   -- AUDIT_LOG  [headlabel="N", style=dashed];
+  ACCOUNT  -- QUEUED     [taillabel="1"];
+  QUEUED   -- TRANSFER_QUEUE [headlabel="N"];
+}

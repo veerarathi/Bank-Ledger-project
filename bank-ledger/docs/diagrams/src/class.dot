@@ -1,0 +1,53 @@
+digraph CLASS {
+  graph [rankdir=LR, nodesep=0.5, ranksep=1.0, pad=0.3, bgcolor="white", fontname="Helvetica", dpi=170];
+  node  [shape=plaintext, fontname="Helvetica", fontsize=10];
+  edge  [fontname="Helvetica", fontsize=10, color="#333333", arrowhead=none];
+
+  Customer [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#e3f2fd">
+    <TR><TD><B>Customer</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- customer_id : bigint {PK}<BR ALIGN="LEFT"/>- full_name : varchar<BR ALIGN="LEFT"/>- email : varchar {unique}<BR ALIGN="LEFT"/>- phone : varchar<BR ALIGN="LEFT"/>- created_at : timestamptz<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">+ create_customer()<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  Branch [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#e3f2fd">
+    <TR><TD><B>Branch</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- branch_id : int {PK}<BR ALIGN="LEFT"/>- branch_name : varchar {unique}<BR ALIGN="LEFT"/>- city : varchar<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">+ v_branch_summary()<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  Account [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#e8f5e9">
+    <TR><TD><B>Account</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- account_id : bigint {PK}<BR ALIGN="LEFT"/>- customer_id : bigint {FK}<BR ALIGN="LEFT"/>- branch_id : int {FK}<BR ALIGN="LEFT"/>- account_type : SAVINGS | CURRENT<BR ALIGN="LEFT"/>- balance : numeric(14,2) &gt;= 0<BR ALIGN="LEFT"/>- status : ACTIVE | FROZEN | CLOSED<BR ALIGN="LEFT"/>- opened_on : date<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">+ fn_open_account() : bigint<BR ALIGN="LEFT"/>+ deposit(amount)<BR ALIGN="LEFT"/>+ withdraw(amount)<BR ALIGN="LEFT"/>+ transfer_funds(to, amount)<BR ALIGN="LEFT"/>+ set_account_status(status)<BR ALIGN="LEFT"/>+ fn_get_balance() : numeric<BR ALIGN="LEFT"/>+ fn_mini_statement(n) : table<BR ALIGN="LEFT"/>+ apply_monthly_interest(rate)<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  Nominee [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#e3f2fd">
+    <TR><TD><B>Nominee</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- account_id : bigint {PK, FK}<BR ALIGN="LEFT"/>- nominee_no : smallint {PK}<BR ALIGN="LEFT"/>- nominee_name : varchar<BR ALIGN="LEFT"/>- relation : varchar<BR ALIGN="LEFT"/>- share_percent : numeric<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  Transaction [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#fff9c4">
+    <TR><TD><B>Transaction</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- txn_id : bigint {PK}<BR ALIGN="LEFT"/>- txn_type : DEPOSIT | WITHDRAWAL |<BR ALIGN="LEFT"/>             TRANSFER | INTEREST<BR ALIGN="LEFT"/>- from_account : bigint {FK, null}<BR ALIGN="LEFT"/>- to_account : bigint {FK, null}<BR ALIGN="LEFT"/>- amount : numeric(14,2) &gt; 0<BR ALIGN="LEFT"/>- txn_time : timestamptz<BR ALIGN="LEFT"/>- remarks : varchar<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">&#171;trigger&#187; trg_daily_limit<BR ALIGN="LEFT"/>&#171;trigger&#187; trg_ledger_immutable<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  AuditLog [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#fce4ec">
+    <TR><TD><B>AuditLog</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- audit_id : bigint {PK}<BR ALIGN="LEFT"/>- account_id : bigint<BR ALIGN="LEFT"/>- action : UPDATE | DELETE<BR ALIGN="LEFT"/>- old_balance, new_balance<BR ALIGN="LEFT"/>- old_status, new_status<BR ALIGN="LEFT"/>- changed_by, changed_at<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">filled by &#171;trigger&#187; trg_account_audit<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  TransferQueue [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#e3f2fd">
+    <TR><TD><B>TransferQueue</B></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- queue_id : bigint {PK}<BR ALIGN="LEFT"/>- from_account, to_account {FK}<BR ALIGN="LEFT"/>- amount : numeric<BR ALIGN="LEFT"/>- status : PENDING | DONE | FAILED<BR ALIGN="LEFT"/>- error_msg : text<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">+ process_transfer_queue()<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  TerminalApp [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="3" BGCOLOR="#ede7f6">
+    <TR><TD><B>TerminalApp</B> (app.py)</TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">- conn : psycopg2 connection<BR ALIGN="LEFT"/></TD></TR><HR/>
+    <TR><TD ALIGN="LEFT">+ main() : menu loop<BR ALIGN="LEFT"/>+ transact(work) : commit/rollback/retry<BR ALIGN="LEFT"/>+ reports(), backup()<BR ALIGN="LEFT"/></TD></TR></TABLE>>];
+
+  Customer -> Account [taillabel="1", headlabel="1..*", labeldistance=2.2];
+  Branch   -> Account [taillabel="1", headlabel="0..*", labeldistance=2.2];
+  Account  -> Nominee [arrowtail=diamond, dir=back, taillabel="1", headlabel="0..*", labeldistance=2.2];
+  Account  -> Transaction [taillabel="0..1 (from)", headlabel="0..*", labeldistance=2.6];
+  Account  -> Transaction [taillabel="0..1 (to)",   headlabel="0..*", labeldistance=2.6];
+  Account  -> AuditLog [style=dashed, arrowhead=vee, label="  logged by trigger"];
+  Account  -> TransferQueue [taillabel="1", headlabel="0..*", labeldistance=2.2];
+  TerminalApp -> Account [style=dashed, arrowhead=vee, label="  calls routines"];
+}
