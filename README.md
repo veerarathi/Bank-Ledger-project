@@ -1,8 +1,8 @@
-# Wallet Ledger: Terminal Banking with SQL, PL/pgSQL & Transactions
+# Bank Ledger: Terminal Banking with SQL, PL/pgSQL & Transactions
 
 A lightweight, terminal-based mini banking system where the **business logic lives inside the database**. Fund transfers are handled by a PL/pgSQL stored procedure, every balance change is logged automatically by a trigger, and ACID transactions guarantee that money is never lost or created.
 
-The Python client is intentionally thin: it only shows a menu and calls the database.
+The project runs with only Python. There is no database server to install , no ORM, and no extra packages: SQLite ships inside Python's standard library. 
 
 ---
 
